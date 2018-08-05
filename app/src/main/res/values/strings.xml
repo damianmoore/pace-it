@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Pace It</string>
+    <string name="field_distance">Distance</string>
+    <string name="field_time">Time</string>
+    <string name="field_pace">Pace</string>
+    <string name="field_speed">Speed</string>
+    <string name="location">Location</string>
+    <string name="status_waiting_gps">Waiting for GPS</string>
+    <!--<string name=""></string>-->
+</resources>

@@ -5,6 +5,12 @@
     <string name="field_pace">Pace</string>
     <string name="field_speed">Speed</string>
     <string name="location">Location</string>
+    <string name="next">Next</string>
+
+    <string name="title_activity_location_permission">Location Permisions</string>
+    <string name="location_permission_request_message">Location access is required to measure distance and calculate pace. Click the button to continue.</string>
+
+    <string name="title_activity_track">Track</string>
     <string name="status_waiting_gps">Waiting for GPS</string>
     <!--<string name=""></string>-->
 </resources>

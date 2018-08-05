@@ -1,13 +1,8 @@
 package uk.co.epixstudios.pace_it.paceit;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,18 +11,15 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
 
 import static android.content.ContentValues.TAG;
 
+
 public class StartActivity extends AppCompatActivity {
+    public static final String EXTRA_MESSAGE = "uk.co.epixstudios.pace_it.START_ACTIVITY";
 
     TextView distance;
     TextView time;
@@ -50,7 +42,6 @@ public class StartActivity extends AppCompatActivity {
         time = (TextView) findViewById(R.id.time_text);
         speed = (TextView) findViewById(R.id.speed_text);
         pace = (TextView) findViewById(R.id.pace_text);
-        gps_position = (TextView) findViewById(R.id.gps_position);
 
         distance.addTextChangedListener(new MyTextWatcher());
         time.addTextChangedListener(new MyTextWatcher());
@@ -58,18 +49,19 @@ public class StartActivity extends AppCompatActivity {
         pace.addTextChangedListener(new MyTextWatcher());
 
         distance.requestFocus();
+    }
 
-        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return;
-        }
-        else {
-            Log.v(TAG, "Have permission");
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new MyLocationListener();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+    public void nextActivity(View view) {
+        Intent intent = new Intent(this, LocationPermissionActivity.class);
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            intent = new Intent(this, TrackActivity.class);
         }
 
+        Button editText = (Button) findViewById(R.id.button);
+        String message = editText.getText().toString();
+        intent.putExtra(EXTRA_MESSAGE, message);
+        startActivity(intent);
     }
 
     private class MyTextWatcher implements TextWatcher {
@@ -83,35 +75,5 @@ public class StartActivity extends AppCompatActivity {
 
         @Override
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-    }
-
-    private class MyLocationListener implements LocationListener {
-
-        @Override
-        public void onLocationChanged(Location loc) {
-            TextView editLocation = findViewById(R.id.gps_position);
-            editLocation.setText("");
-            Toast.makeText(
-                    getApplicationContext(),
-                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
-                            + loc.getLongitude(), Toast.LENGTH_SHORT).show();
-            String longitude = "Longitude: " + loc.getLongitude();
-            Log.v(TAG, longitude);
-            String latitude = "Latitude: " + loc.getLatitude();
-            Log.v(TAG, latitude);
-            gps_position.setText("Lat: " + loc.getLatitude() + "\nLng: " + loc.getLongitude());
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-        }
     }
 }

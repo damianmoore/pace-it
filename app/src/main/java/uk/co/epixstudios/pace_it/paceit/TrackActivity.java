@@ -14,10 +14,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static android.content.ContentValues.TAG;
 
@@ -26,12 +24,15 @@ public class TrackActivity extends AppCompatActivity {
 
     TextView gps_position;
     TextView distance_text;
-//    ArrayList<Location> locations = new ArrayList<Location>();
+    TextView time_elapsed_text;
+
     Location prev_loc = null;
     float distance = 0;
     float total_distance = 0;
     Button button_start_stop;
     boolean running = false;
+    long start_time;
+    Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +41,7 @@ public class TrackActivity extends AppCompatActivity {
 
         gps_position = (TextView) findViewById(R.id.gps_position);
         distance_text = (TextView) findViewById(R.id.distance);
+        time_elapsed_text = (TextView) findViewById(R.id.time_elapsed);
         button_start_stop = (Button) findViewById(R.id.button_start_stop);
 
         if (!running) {
@@ -57,7 +59,7 @@ public class TrackActivity extends AppCompatActivity {
             Log.v(TAG, "Have permission");
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             LocationListener locationListener = new TrackActivity.MyLocationListener();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, locationListener);
         }
     }
 
@@ -65,24 +67,51 @@ public class TrackActivity extends AppCompatActivity {
         if (!running) {
             running = true;
             total_distance = 0;
+            start_time = System.currentTimeMillis();
             button_start_stop.setText("Stop");
-            distance_text.setText("" + total_distance);
+            distance_text.setText(String.format("%.0fm", total_distance));
+            runClock();
         }
         else {
             running = false;
             button_start_stop.setText("Start");
-            distance_text.setText("" + total_distance);
+            distance_text.setText(String.format("%.0fm", total_distance));
+            stopClock();
         }
     }
 
-    private class MyLocationListener implements LocationListener {
+    private void runClock() {
+        timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        long delta_time = System.currentTimeMillis() - start_time;
+                        displayClock(delta_time);
+                    }
+                });
+            }
+        }, 0, 29);
+    }
 
+    private void stopClock() {
+        timer.cancel();
+        long delta_time = System.currentTimeMillis() - start_time;
+        displayClock(delta_time);
+    }
+
+    private void displayClock(long millis) {
+        time_elapsed_text.setText(String.format("%02d:%02d:%02d", millis / 60000, (millis / 1000) % 60, (millis / 10) % 100));
+    }
+
+
+    private class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location loc) {
             gps_position.setText("Lat: " + loc.getLatitude() + "\nLng: " + loc.getLongitude());
 
             if (prev_loc != null){
-
                 distance = prev_loc.distanceTo(loc);
 //                Toast.makeText(getApplicationContext(), " " + distance, Toast.LENGTH_SHORT).show();
                 if (running) {
@@ -90,10 +119,8 @@ public class TrackActivity extends AppCompatActivity {
                 }
 
                 Log.v(TAG, "" + total_distance);
-                distance_text.setText("" + total_distance);
-
+                distance_text.setText(String.format("%.0fm", total_distance));
             }
-
             prev_loc = loc;
         }
 

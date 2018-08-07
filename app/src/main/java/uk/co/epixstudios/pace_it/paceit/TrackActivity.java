@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,6 +26,8 @@ public class TrackActivity extends AppCompatActivity {
     TextView gps_position;
     TextView distance_text;
     TextView time_elapsed_text;
+    ProgressBar progress_pace;
+    ProgressBar progress_total;
 
     Location prev_loc = null;
     float distance = 0;
@@ -43,6 +46,8 @@ public class TrackActivity extends AppCompatActivity {
         distance_text = (TextView) findViewById(R.id.distance);
         time_elapsed_text = (TextView) findViewById(R.id.time_elapsed);
         button_start_stop = (Button) findViewById(R.id.button_start_stop);
+        progress_pace = (ProgressBar) findViewById(R.id.progress_pace);
+        progress_total = (ProgressBar) findViewById(R.id.progress_total);
 
         if (!running) {
             button_start_stop.setText("Start");
@@ -70,6 +75,7 @@ public class TrackActivity extends AppCompatActivity {
             start_time = System.currentTimeMillis();
             button_start_stop.setText("Stop");
             distance_text.setText(String.format("%.0fm", total_distance));
+            progress_total.setProgress(0);
             runClock();
         }
         else {
@@ -120,6 +126,7 @@ public class TrackActivity extends AppCompatActivity {
 
                 Log.v(TAG, "" + total_distance);
                 distance_text.setText(String.format("%.0fm", total_distance));
+                progress_total.setProgress(Math.round((total_distance / 5000) * 100));
             }
             prev_loc = loc;
         }

@@ -5,12 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".StartActivity"
-    tools:layout_editor_absoluteY="81dp">
+    tools:layout_editor_absoluteY="81dp"
+    android:background="#262626">
+
+    <!--<FrameLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent">-->
+
+        <!--<ImageView-->
+            <!--android:id="@+id/imageView"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:scaleType="centerCrop"-->
+            <!--app:srcCompat="@mipmap/background" />-->
+    <!--</FrameLayout>-->
 
     <TableLayout
         android:id="@+id/tableLayout1"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:padding="?attr/listPreferredItemPaddingLeft"
         android:shrinkColumns="1"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -27,7 +40,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="?attr/listPreferredItemPaddingRight"
-                android:text="@string/field_distance" />
+                android:text="@string/field_distance"
+                android:textColor="@color/colorLight" />
 
             <EditText
                 android:id="@+id/distance_text"
@@ -39,6 +53,7 @@
                 android:inputType="phone"
                 android:text="5"
                 android:textAlignment="textEnd"
+                android:textColor="@color/colorLight"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -58,7 +73,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="?attr/listPreferredItemPaddingRight"
-                android:text="@string/field_time" />
+                android:text="@string/field_time"
+                android:textColor="@color/colorLight" />
 
             <EditText
                 android:id="@+id/time_text"
@@ -68,6 +84,7 @@
                 android:inputType="phone"
                 android:text="5"
                 android:textAlignment="textEnd"
+                android:textColor="@color/colorLight"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -89,7 +106,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="?attr/listPreferredItemPaddingRight"
-                android:text="@string/field_speed" />
+                android:text="@string/field_speed"
+                android:textColor="@color/colorLight" />
 
             <EditText
                 android:id="@+id/speed_text"
@@ -99,6 +117,7 @@
                 android:inputType="phone"
                 android:text="5"
                 android:textAlignment="textEnd"
+                android:textColor="@color/colorLight"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -115,7 +134,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginRight="?attr/listPreferredItemPaddingRight"
-                android:text="@string/field_pace" />
+                android:text="@string/field_pace"
+                android:textColor="@color/colorLight" />
 
             <EditText
                 android:id="@+id/pace_text"
@@ -126,25 +146,9 @@
                 android:inputType="phone"
                 android:text="5"
                 android:textAlignment="textEnd"
+                android:textColor="@color/colorLight"
                 android:textSize="24sp"
                 android:textStyle="bold" />
-
-        </TableRow>
-
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:layout_editor_absoluteX="54dp"
-            tools:layout_editor_absoluteY="46dp">
-
-            <TextView
-                android:id="@+id/gps_position"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_span="3"
-                android:text="GPS"
-                app:layout_constraintStart_toStartOf="@+id/tableLayout2"
-                app:layout_constraintTop_toTopOf="@+id/tableLayout2" />
 
         </TableRow>
 

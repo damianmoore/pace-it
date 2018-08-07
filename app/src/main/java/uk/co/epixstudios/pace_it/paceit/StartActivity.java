@@ -34,7 +34,7 @@ public class StartActivity extends AppCompatActivity {
 
         Spinner spinner = (Spinner) findViewById(R.id.distance_unit_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.distance_units_array, android.R.layout.simple_spinner_item);
+                R.array.distance_units_array, R.layout.spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
 

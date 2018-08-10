@@ -2,6 +2,7 @@ package uk.co.epixstudios.pace_it.paceit;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +22,7 @@ import static android.content.ContentValues.TAG;
 public class StartActivity extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "uk.co.epixstudios.pace_it.START_ACTIVITY";
 
+    SharedPreferences settings;
     TextView distance;
     TextView time;
     TextView speed;
@@ -31,6 +33,8 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+
+        settings = getSharedPreferences("app_preferences", 0);
 
         Spinner spinner = (Spinner) findViewById(R.id.distance_unit_spinner);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -43,6 +47,11 @@ public class StartActivity extends AppCompatActivity {
         speed = (TextView) findViewById(R.id.speed_text);
         pace = (TextView) findViewById(R.id.pace_text);
 
+        Float distance_val = (float)settings.getInt("distance", 5) / 1000;
+        distance.setText(distance_val.toString());
+        Integer time_val = settings.getInt("time", 5);
+        time.setText(time_val.toString());
+
         distance.addTextChangedListener(new MyTextWatcher());
         time.addTextChangedListener(new MyTextWatcher());
         speed.addTextChangedListener(new MyTextWatcher());
@@ -52,6 +61,11 @@ public class StartActivity extends AppCompatActivity {
     }
 
     public void nextActivity(View view) {
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putInt("distance", Math.round(Float.parseFloat(distance.getText().toString()) * 1000));  // In meters
+        editor.putInt("time", Math.round(Float.parseFloat(time.getText().toString())));  // In seconds
+        editor.commit();
+
         Intent intent = new Intent(this, LocationPermissionActivity.class);
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {

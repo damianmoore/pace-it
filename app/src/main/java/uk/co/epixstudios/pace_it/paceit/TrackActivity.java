@@ -3,10 +3,12 @@ package uk.co.epixstudios.pace_it.paceit;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,9 +25,14 @@ import static android.content.ContentValues.TAG;
 public class TrackActivity extends AppCompatActivity {
     public static final String EXTRA_MESSAGE = "uk.co.epixstudios.pace_it.TRACK_ACTIVITY";
 
+    SharedPreferences settings;
+    float target_distance = 0;
+    float target_time = 0;
+
     TextView gps_position;
     TextView distance_text;
     TextView time_elapsed_text;
+    TextView speed_text;
     ProgressBar progress_pace;
     ProgressBar progress_total;
 
@@ -35,6 +42,7 @@ public class TrackActivity extends AppCompatActivity {
     Button button_start_stop;
     boolean running = false;
     long start_time;
+    long prev_loc_time = 0;
     Timer timer;
 
     @Override
@@ -42,9 +50,14 @@ public class TrackActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_track);
 
+        settings = getSharedPreferences("app_preferences", 0);
+        target_distance = settings.getInt("distance", 1000);
+        target_time = settings.getInt("time", 1000);
+
         gps_position = (TextView) findViewById(R.id.gps_position);
         distance_text = (TextView) findViewById(R.id.distance);
         time_elapsed_text = (TextView) findViewById(R.id.time_elapsed);
+        speed_text = (TextView) findViewById(R.id.speed);
         button_start_stop = (Button) findViewById(R.id.button_start_stop);
         progress_pace = (ProgressBar) findViewById(R.id.progress_pace);
         progress_total = (ProgressBar) findViewById(R.id.progress_total);
@@ -116,19 +129,31 @@ public class TrackActivity extends AppCompatActivity {
         @Override
         public void onLocationChanged(Location loc) {
             gps_position.setText("Lat: " + loc.getLatitude() + "\nLng: " + loc.getLongitude());
+            speed_text.setText("" + loc.getSpeed() + "m/s");
 
-            if (prev_loc != null){
-                distance = prev_loc.distanceTo(loc);
-//                Toast.makeText(getApplicationContext(), " " + distance, Toast.LENGTH_SHORT).show();
-                if (running) {
-                    total_distance += distance;
+            if (loc.getAccuracy() < 20 || Build.FINGERPRINT.contains("generic")) {  // Don't require accuracy if running in emulator
+                long current_time = System.currentTimeMillis();
+                if (prev_loc != null) {
+                    button_start_stop.setEnabled(true);
+                    distance = prev_loc.distanceTo(loc);
+//                    Toast.makeText(getApplicationContext(), " " + distance, Toast.LENGTH_SHORT).show();
+                    if (running) {
+                        total_distance += distance;
+                    }
+
+                    Log.v(TAG, "" + total_distance);
+                    distance_text.setText(String.format("%.0fm", total_distance));
+                    progress_total.setProgress(Math.round((total_distance / target_distance) * 100));
+
+                    // Calculate speed
+                    float elapsed_time = current_time - prev_loc_time;
+                    float speed_m_per_s = (distance / elapsed_time) * 1000;
+                    float speed_km_per_h = (speed_m_per_s * 3600) / 1000;
+                    speed_text.setText("" + String.format("%.2f", speed_km_per_h) + "km/h, " + String.format("%.2f", speed_m_per_s) + "m/s");
                 }
-
-                Log.v(TAG, "" + total_distance);
-                distance_text.setText(String.format("%.0fm", total_distance));
-                progress_total.setProgress(Math.round((total_distance / 5000) * 100));
+                prev_loc = loc;
+                prev_loc_time = System.currentTimeMillis();
             }
-            prev_loc = loc;
         }
 
         @Override

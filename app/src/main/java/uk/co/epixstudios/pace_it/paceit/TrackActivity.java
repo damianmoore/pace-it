@@ -32,7 +32,8 @@ public class TrackActivity extends AppCompatActivity {
     TextView gps_position;
     TextView distance_text;
     TextView time_elapsed_text;
-    TextView speed_text;
+    TextView speed_current;
+    TextView speed_overall;
     ProgressBar progress_pace;
     ProgressBar progress_total;
 
@@ -43,7 +44,8 @@ public class TrackActivity extends AppCompatActivity {
     boolean running = false;
     long start_time;
     long prev_loc_time = 0;
-    Timer timer;
+    Timer timer_clock;
+    Timer timer_stats;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +59,8 @@ public class TrackActivity extends AppCompatActivity {
         gps_position = (TextView) findViewById(R.id.gps_position);
         distance_text = (TextView) findViewById(R.id.distance);
         time_elapsed_text = (TextView) findViewById(R.id.time_elapsed);
-        speed_text = (TextView) findViewById(R.id.speed);
+        speed_current = (TextView) findViewById(R.id.speed_current);
+        speed_overall = (TextView) findViewById(R.id.speed_overall);
         button_start_stop = (Button) findViewById(R.id.button_start_stop);
         progress_pace = (ProgressBar) findViewById(R.id.progress_pace);
         progress_total = (ProgressBar) findViewById(R.id.progress_total);
@@ -90,6 +93,7 @@ public class TrackActivity extends AppCompatActivity {
             distance_text.setText(String.format("%.0fm", total_distance));
             progress_total.setProgress(0);
             runClock();
+            runStats();
         }
         else {
             running = false;
@@ -100,8 +104,8 @@ public class TrackActivity extends AppCompatActivity {
     }
 
     private void runClock() {
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        timer_clock = new Timer();
+        timer_clock.scheduleAtFixedRate(new TimerTask() {
             public void run() {
                 runOnUiThread(new Runnable() {
                     @Override
@@ -115,7 +119,7 @@ public class TrackActivity extends AppCompatActivity {
     }
 
     private void stopClock() {
-        timer.cancel();
+        timer_clock.cancel();
         long delta_time = System.currentTimeMillis() - start_time;
         displayClock(delta_time);
     }
@@ -124,12 +128,35 @@ public class TrackActivity extends AppCompatActivity {
         time_elapsed_text.setText(String.format("%02d:%02d:%02d", millis / 60000, (millis / 1000) % 60, (millis / 10) % 100));
     }
 
+    private void runStats() {
+        timer_stats = new Timer();
+        timer_stats.scheduleAtFixedRate(new TimerTask() {
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        displayStats();
+                    }
+                });
+            }
+        }, 500, 500);
+    }
+
+    private void displayStats() {
+        // Calculate overall speed
+        float elapsed_time_overall = prev_loc_time - start_time;
+        float speed_m_per_s_overall = (total_distance / elapsed_time_overall) * 1000;
+        float speed_km_per_h_overall = (speed_m_per_s_overall * 3600) / 1000;
+        if (speed_m_per_s_overall > 0) {
+            speed_overall.setText("" + String.format("%.2f", speed_km_per_h_overall) + "km/h, " + String.format("%.2f", speed_m_per_s_overall) + "m/s (overall)");
+        }
+    }
 
     private class MyLocationListener implements LocationListener {
         @Override
         public void onLocationChanged(Location loc) {
             gps_position.setText("Lat: " + loc.getLatitude() + "\nLng: " + loc.getLongitude());
-            speed_text.setText("" + loc.getSpeed() + "m/s");
+            speed_current.setText("" + loc.getSpeed() + "m/s");
 
             if (loc.getAccuracy() < 20 || Build.FINGERPRINT.contains("generic")) {  // Don't require accuracy if running in emulator
                 long current_time = System.currentTimeMillis();
@@ -145,11 +172,13 @@ public class TrackActivity extends AppCompatActivity {
                     distance_text.setText(String.format("%.0fm", total_distance));
                     progress_total.setProgress(Math.round((total_distance / target_distance) * 100));
 
-                    // Calculate speed
+                    // Calculate current speed
                     float elapsed_time = current_time - prev_loc_time;
                     float speed_m_per_s = (distance / elapsed_time) * 1000;
                     float speed_km_per_h = (speed_m_per_s * 3600) / 1000;
-                    speed_text.setText("" + String.format("%.2f", speed_km_per_h) + "km/h, " + String.format("%.2f", speed_m_per_s) + "m/s");
+                    speed_current.setText("" + String.format("%.2f", speed_km_per_h) + "km/h, " + String.format("%.2f", speed_m_per_s) + "m/s (current)");
+
+//                    displayStats();
                 }
                 prev_loc = loc;
                 prev_loc_time = System.currentTimeMillis();

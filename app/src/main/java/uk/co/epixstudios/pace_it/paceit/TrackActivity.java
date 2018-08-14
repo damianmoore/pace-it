@@ -34,6 +34,7 @@ public class TrackActivity extends AppCompatActivity {
     TextView time_elapsed_text;
     TextView speed_current;
     TextView speed_overall;
+    TextView pace_difference;
     ProgressBar progress_pace;
     ProgressBar progress_total;
 
@@ -62,9 +63,10 @@ public class TrackActivity extends AppCompatActivity {
         time_elapsed_text = (TextView) findViewById(R.id.time_elapsed);
         speed_current = (TextView) findViewById(R.id.speed_current);
         speed_overall = (TextView) findViewById(R.id.speed_overall);
-        button_start_stop = (Button) findViewById(R.id.button_start_stop);
+        pace_difference = (TextView) findViewById(R.id.pace_difference);
         progress_pace = (ProgressBar) findViewById(R.id.progress_pace);
         progress_total = (ProgressBar) findViewById(R.id.progress_total);
+        button_start_stop = (Button) findViewById(R.id.button_start_stop);
 
         if (!running) {
             button_start_stop.setText("Start");
@@ -114,6 +116,7 @@ public class TrackActivity extends AppCompatActivity {
             button_start_stop.setText("Start");
             distance_text.setText(String.format("%.0fm", total_distance));
             stopClock();
+            displayStats();
         }
     }
 
@@ -166,6 +169,20 @@ public class TrackActivity extends AppCompatActivity {
             if (speed_m_per_s_overall > 0) {
                 speed_overall.setText("" + String.format("%.2f", speed_km_per_h_overall) + "km/h, " + String.format("%.2f", speed_m_per_s_overall) + "m/s (overall)");
             }
+
+            // Calculate pace difference
+            float time_progress = elapsed_time_overall / (target_time * 1000);
+            float pace_distance = target_distance * time_progress;
+            float distance_difference = total_distance - pace_distance;
+
+            String ahead_or_behind = "ahead of";
+            if (distance_difference < 0) {
+                ahead_or_behind = "behind";
+            }
+            float pace_percentage = 50 + (target_distance * (float)0.001 * distance_difference);
+
+            pace_difference.setText(String.format("%.2fm %s pace (pace_distance %.2f)", distance_difference, ahead_or_behind, pace_distance));
+            progress_pace.setProgress(Math.round(pace_percentage));
         }
     }
 

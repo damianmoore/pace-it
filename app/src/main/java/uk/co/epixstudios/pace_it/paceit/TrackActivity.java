@@ -1,6 +1,8 @@
 package uk.co.epixstudios.pace_it.paceit;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,6 +13,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -49,6 +53,9 @@ public class TrackActivity extends AppCompatActivity {
     Timer timer_clock;
     Timer timer_stats;
 
+    NotificationCompat.Builder mBuilder;
+    NotificationManagerCompat notificationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +92,15 @@ public class TrackActivity extends AppCompatActivity {
             LocationListener locationListener = new TrackActivity.MyLocationListener();
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 5, locationListener);
         }
+
+        notificationManager = NotificationManagerCompat.from(this);
+        createNotificationChannel();
+        mBuilder = new NotificationCompat.Builder(this, "TRACK")
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("Pace It")
+            .setContentText("Starting...")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
     }
 
     public void onStartStop(View view) {
@@ -105,6 +121,7 @@ public class TrackActivity extends AppCompatActivity {
             button_start_stop.setText("Stop");
             distance_text.setText(String.format("%.0fm", total_distance));
             progress_total.setProgress(0);
+            notificationManager.notify(1, mBuilder.build());
             runClock();
             runStats();
         }
@@ -115,6 +132,7 @@ public class TrackActivity extends AppCompatActivity {
             running = false;
             button_start_stop.setText("Start");
             distance_text.setText(String.format("%.0fm", total_distance));
+            notificationManager.cancel(1);
             stopClock();
             displayStats();
         }
@@ -183,13 +201,16 @@ public class TrackActivity extends AppCompatActivity {
 
             pace_difference.setText(String.format("%.2fm %s pace (pace_distance %.2f)", distance_difference, ahead_or_behind, pace_distance));
             progress_pace.setProgress(Math.round(pace_percentage));
+
+            mBuilder.setContentText(String.format("%.2f", speed_km_per_h_overall) + "km/h");
+            notificationManager.notify(1, mBuilder.build());
         }
     }
 
     private void checkClock() {
-        if (System.currentTimeMillis() >= finish_time) {
-            stopTracking();
-        }
+//        if (System.currentTimeMillis() >= finish_time) {
+//            stopTracking();
+//        }
     }
 
     private class MyLocationListener implements LocationListener {
@@ -215,6 +236,11 @@ public class TrackActivity extends AppCompatActivity {
                         float speed_m_per_s = (distance / elapsed_time) * 1000;
                         float speed_km_per_h = (speed_m_per_s * 3600) / 1000;
                         speed_current.setText("" + String.format("%.2f", speed_km_per_h) + "km/h, " + String.format("%.2f", speed_m_per_s) + "m/s (current)");
+
+                        // Stop clock if completed the distance
+                        if (total_distance >= target_distance) {
+                            stopTracking();
+                        }
                     }
                 }
                 prev_loc = loc;
@@ -232,6 +258,22 @@ public class TrackActivity extends AppCompatActivity {
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("TRACK", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
